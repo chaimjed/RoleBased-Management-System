@@ -1,0 +1,16 @@
+@import "tailwindcss";
+@import "flowbite-react/plugin/tailwindcss";
+@source "../.flowbite-react/class-list.json";
+@layer components {
+  .dark .PhoneInputCountrySelect {
+    @apply bg-gray-700 text-white;
+  }
+
+  .dark .PhoneInputCountrySelect option {
+    @apply bg-gray-700 text-white;
+  }
+
+  .dark .PhoneInputCountrySelectArrow {
+    @apply text-white opacity-70;
+  }
+}

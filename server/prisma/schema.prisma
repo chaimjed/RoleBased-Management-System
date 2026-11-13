@@ -1,0 +1,95 @@
+generator client {
+  provider   = "prisma-client-js"
+  engineType = "binary"
+}
+
+datasource db {
+  provider = "mysql"
+}
+
+model notification {
+  id        String   @id @default(uuid())
+  userId    String
+  type      String
+  message   String
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+  user      user     @relation(fields: [userId], references: [id], map: "Notification_userId_fkey")
+  data Json?
+
+  @@index([userId], map: "Notification_userId_fkey")
+}
+
+model permission {
+  id             String           @id @default(uuid())
+  name           String           @unique(map: "Permission_name_key")
+  label          String?
+  rolepermission rolepermission[]
+}
+
+model role {
+  id             String           @id @default(uuid())
+  name           String           @unique(map: "Role_name_key")
+  rolepermission rolepermission[]
+  user           user[]
+}
+
+model rolepermission {
+  roleId       String
+  permissionId String
+  permission   permission @relation(fields: [permissionId], references: [id], map: "RolePermission_permissionId_fkey")
+  role         role       @relation(fields: [roleId], references: [id], map: "RolePermission_roleId_fkey")
+
+  @@id([roleId, permissionId])
+  @@index([permissionId], map: "RolePermission_permissionId_fkey")
+}
+model AuditLog {
+  id          String   @id @default(uuid())
+  actorId     String?
+  actor       user?    @relation(fields: [actorId], references: [id], onDelete: SetNull)
+  key         String
+  action      String
+  targetType  String?
+  targetId    String?
+  targetLabel String?
+  metadata    Json?
+  createdAt   DateTime @default(now())
+
+  @@index([actorId])
+  @@index([key])
+  @@index([targetId])
+}
+model user {
+  id                      String         @id @default(uuid())
+  email                   String         @unique(map: "User_email_key")
+  firstName               String
+  lastName                String
+  dateOfBirth             DateTime
+  phone                   String?
+  password                String?
+  isVerified              Boolean        @default(false)
+  resetToken              String?        @unique(map: "User_resetToken_key")
+  resetTokenExpiry        DateTime?
+  verificationToken       String?        @unique(map: "User_verificationToken_key")
+  verificationTokenExpiry DateTime?
+  refreshToken            String?
+  avatarUrl               String?
+  googleId                String?        @unique(map: "User_googleId_key")
+  roleId                  String
+  status                  user_status    @default(ACTIVE)
+  createdAt               DateTime       @default(now())
+  lastActiveAt            DateTime?
+  statusReason            String?
+  suspendedUntil          DateTime?
+  notification            notification[]
+  role                    role           @relation(fields: [roleId], references: [id], map: "User_roleId_fkey")
+  auditLogs AuditLog[]
+
+  @@index([roleId], map: "User_roleId_fkey")
+}
+
+enum user_status {
+  ACTIVE
+  SUSPENDED
+  BANNED
+}
